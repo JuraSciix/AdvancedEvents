@@ -1,0 +1,6 @@
+name: ModernEventAPI
+description: A modern API for PocketMine-MP events.
+version: 1.0.0
+api: [3.0.0, 4.0.0]
+main: JuraSciix\ModernEventAPI\ModernEventAPI
+author: JuraSciix
