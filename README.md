@@ -1,41 +1,42 @@
-# ModernEventAPI
+# AdvancedEvents
 
-This is a library for [PocketMine-MP](https://github.com/pmmp/PocketMine-MP) plugin events that allows you to use a piece of the power of PHP 8 — [attributes](https://www.php.net/manual/language.attributes.overview.php).
+This is a [PocketMine-MP](https://github.com/pmmp/PocketMine-MP) plugin that allows you to comfortably register events using a new piece of PHP 8 power — [attributes](https://www.php.net/manual/language.attributes.overview.php).
 
 *Inspired by [qPexLegendary's CoolEventListener](https://github.com/qPexLegendary/CoolEventListener).*
 
 ## Examples
 
-Below is a simple example of a plugin with an event listener using the [ModernEventAPI](https://github.com/JuraSciix/ModernEventAPI).
+Below is a simple example of a plugin with a listener using the [AdvancedEvents](https://github.com/JuraSciix/AdvancedEvents).
 
 ```php
 <?php
 
-use JuraSciix\ModernEventAPI\Attribute\EventHandler;
-use JuraSciix\ModernEventAPI\ModernEventAPI;
+use JuraSciix\AdvancedEvents\Attribute\EventHandler;
+use JuraSciix\AdvancedEvents\AdvancedEvents;
 use pocketmine\event\block\BlockBreakEvent;
 use pocketmine\event\block\BlockPlaceEvent;
 use pocketmine\event\EventPriority;
-use pocketmine\event\Listener;
 use pocketmine\event\player\PlayerJoinEvent;
 use pocketmine\plugin\PluginBase;
 
-class Example extends PluginBase implements Listener {
+// There is no need to implement the \pocketmine\event\Listener interface.
+// Implementation makes sense only if you need to inform the code reader that class handles events.
+class Example extends PluginBase /*implements Listener*/ {
 
     protected function onEnable(): void {
-        // Register this class as an event listener on behalf of the plugin of this example.
-        ModernEventAPI::registerEvents($this, $this); // Instead of server plugin manager.
+        // Register this class as a listener on behalf of this plugin.
+        AdvancedEvents::registerEvents($this, $this);
     }
 
-    // The event handling method is detected not by access modifiers or method signature, but by the EventHandler attribute.
-    // In other words, this attribute is required for each event handling methods.
+    // The method that handles certain events is detected by the EventHandler attribute, unlike PM-MP.
+    // In other words, this attribute is required for each method that handles events.
     #[EventHandler(priority: EventPriority::LOWEST)]
     private function onPlayerJoin(PlayerJoinEvent $event): void {
-        // Due to the LOWEST priority, we can not perform various checks here.
+        // Due to the LOWEST priority, we are not required to perform various checks here.
         $event->getPlayer()->sendMessage("Welcome!");
     }
     
-    // Yeah, you can combine events in one event handler method.
+    // You can combine the handling of several events at once
     #[EventHandler]
     private function onBlockPlaceOrBreak(BlockPlaceEvent|BlockBreakEvent $event): void {
         $event->cancel();

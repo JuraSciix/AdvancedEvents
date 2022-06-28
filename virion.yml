@@ -1,5 +1,5 @@
-name: libModernEventAPI
-version: 1.0.0
-api: [3.0.0, 4.0.0]
+name: AdvancedEvents
+version: 1.1
 author: JuraSciix
-antigen: JuraSciix\ModernEventAPI
+api: [ 3.0.0, 4.0.0 ]
+antigen: JuraSciix\AdvancedEvents

@@ -1,6 +1,6 @@
-name: ModernEventAPI
-description: A modern API for PocketMine-MP events.
-version: 1.0.0
-api: [3.0.0, 4.0.0]
-main: JuraSciix\ModernEventAPI\ModernEventAPI
+name: AdvancedEvents
+description: A PocketMine-MP plugin that allows you to comfortably register events using the PHP 8 attributes.
+version: 1.1
 author: JuraSciix
+api: [ 3.0.0, 4.0.0 ]
+main: JuraSciix\AdvancedEvents\AdvancedEvents
