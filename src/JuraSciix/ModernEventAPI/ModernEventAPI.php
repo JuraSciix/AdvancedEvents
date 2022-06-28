@@ -30,10 +30,7 @@ class ModernEventAPI extends PluginBase {
             }
 
             $events = static::resolveEvents($method);
-            $handler = static function (Event $event) use ($method, $listener): void {
-                $method->setAccessible(true);
-                $method->invoke($listener, $event);
-            };
+            $handler = $method->getClosure($listener);
 
             foreach ($events as $event) {
                 $pluginManager->registerEvent($event, $handler, $eventHandler->priority, $plugin, $eventHandler->handleCancelled);
