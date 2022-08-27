@@ -1,55 +1,67 @@
 <?php
 
-namespace JuraSciix\AdvancedEvents;
+declare(strict_types=1);
 
-use JuraSciix\AdvancedEvents\Attribute\EventHandler;
-use JuraSciix\AdvancedEvents\Exception\InvalidEventHandlerMethodException;
+namespace jurasciix\advancedEvents;
+
+use jurasciix\advancedEvents\attribute\EventHandler;
+use jurasciix\advancedEvents\exception\InvalidEventHandlerMethodException;
 use pocketmine\plugin\Plugin;
 use pocketmine\plugin\PluginBase;
 use pocketmine\plugin\PluginException;
 use pocketmine\Server;
+use pocketmine\utils\Utils;
 
-final class AdvancedEvents extends PluginBase {
+class AdvancedEvents extends PluginBase {
 
     /**
-     * Registers event handlers contained in the given listener class.
+     * Registers the given event listener.
      *
-     * @param object $listener The listener class.
-     * @param Plugin $plugin The plugin that owns the listener.
+     * @param object $listener Event listener instance.
+     * @param Plugin $plugin The plugin that owns the given event listener.
      *
-     * @version 1.1 Code reorganizing, project renaming.
+     * @deprecated Use AdvancedEvents#registerEventHandler() instead.
      */
     public static function registerEvents(object $listener, Plugin $plugin): void {
+        self::registerEventListener($listener, $plugin);
+    }
+
+    /**
+     * Registers the given event listener.
+     *
+     * @param object $listener Event listener instance.
+     * @param Plugin $plugin The plugin that owns the given event listener.
+     */
+    public static function registerEventListener(object $listener, Plugin $plugin): void {
         $listenerClass = new \ReflectionClass($listener);
         $className = $listenerClass->getName();
 
         if (!$plugin->isEnabled()) {
-            throw new PluginException("Disabled plugin tried to register listener $className");
+            throw new PluginException("Disabled plugin tried to register listener: $className");
         }
 
         foreach ($listenerClass->getMethods() as $method) {
             $attributes = $method->getAttributes(EventHandler::class);
 
-            if (!empty($attributes)) {
-                /** @var EventHandler $eventHandler */
-                $eventHandler = $attributes[0]->newInstance();
+            if (empty($attributes)) {
+                continue;
+            }
 
-                try {
-                    self::registerEventHandler($listener, $method, $eventHandler, $plugin);
-                } catch (\Exception $e) {
-                    $methodString = $className . ($method->isStatic() ? '::' : '->') . $method->getName();
-                    throw new PluginException(
-                        message: "Couldn't register the $methodString method as an event handler",
-                        previous: $e
-                    );
-                }
+            /** @var EventHandler $eventHandler */
+            $eventHandler = $attributes[0]->newInstance();
+
+            try {
+                self::registerEventHandler($listener, $method, $eventHandler, $plugin);
+            } catch (\Exception $e) {
+                $niceMethodName = Utils::getNiceClosureName($method->getClosure($listener));
+                throw new PluginException(
+                    message: "Couldn't register the $niceMethodName method as an event handler",
+                    previous: $e
+                );
             }
         }
     }
 
-    /**
-     * @throws \ReflectionException if a reflection error has occurred.
-     */
     private static function registerEventHandler(object            $listener,
                                                  \ReflectionMethod $method,
                                                  EventHandler      $eventHandler,
@@ -57,11 +69,11 @@ final class AdvancedEvents extends PluginBase {
         if ($method->isConstructor() || $method->isDestructor() || $method->isGenerator() ||
             $method->isAbstract() || $method->isStatic() || $method->isInternal() ||
             $method->isVariadic()) {
-            throw new InvalidEventHandlerMethodException("The method has an invalid declaration");
+            throw new InvalidEventHandlerMethodException("Method has illegal declaration");
         }
 
         if ($method->getNumberOfRequiredParameters() !== 1) {
-            throw new InvalidEventHandlerMethodException("The method should have only 1 parameter");
+            throw new InvalidEventHandlerMethodException("Method must have only 1 required parameter");
         }
 
         $parameterType = $method->getParameters()[0]->getType();
@@ -74,7 +86,7 @@ final class AdvancedEvents extends PluginBase {
         } else if ($parameterType instanceof \ReflectionNamedType) {
             $events[] = $parameterType->getName();
         } else {
-            throw new InvalidEventHandlerMethodException("The method has an invalid parameter type");
+            throw new InvalidEventHandlerMethodException("Method has an illegal parameter type");
         }
 
         foreach ($events as $event) {
